@@ -1,0 +1,76 @@
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+ 
+    <!-- 定义传动实现宏 -->
+    <xacro:macro name="joint_trans" params="joint_name">
+        <transmission name="${joint_name}_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${joint_name}">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${joint_name}_motor">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+    </xacro:macro>
+ 
+    <!-- 为每个驱动轮添加传动装置 -->
+    <xacro:joint_trans joint_name="left_front_wheel2base_link" />
+    <xacro:joint_trans joint_name="right_front_wheel2base_link" />
+    <xacro:joint_trans joint_name="left_back_wheel2base_link" />
+    <xacro:joint_trans joint_name="right_back_wheel2base_link" />
+ 
+    <!-- 添加差速驱动控制插件 -->
+    <gazebo>
+        <plugin name="differential_drive_controller_front" filename="libgazebo_ros_diff_drive.so">
+            <rosDebugLevel>na</rosDebugLevel>
+            <publishWheelTF>false</publishWheelTF>
+            <robotNamespace>/</robotNamespace>
+            <publishTf>true</publishTf>
+            <publishWheelJointState>false</publishWheelJointState>
+            <alwaysOn>true</alwaysOn>
+            <updateRate>30.0</updateRate>
+            <legacyMode>true</legacyMode>
+            <leftJoint>left_front_wheel2base_link</leftJoint>
+            <rightJoint>right_front_wheel2base_link</rightJoint>
+            <wheelSeparation>${vehicle_width}</wheelSeparation>
+            <wheelDiameter>${wheel_radius * 2}</wheelDiameter>
+            <broadcastTF>1</broadcastTF>
+            <wheelTorque>50</wheelTorque>
+            <wheelAcceleration>1.8</wheelAcceleration>
+            <commandTopic>cmd_vel</commandTopic>
+            <odometryFrame>odom</odometryFrame>
+            <odometryTopic>odom</odometryTopic>
+            <odometrySource>world</odometrySource>
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+            <publishOdomTF>true</publishOdomTF>
+        </plugin>
+    </gazebo>
+ 
+    <gazebo>
+        <plugin name="differential_drive_controller_back" filename="libgazebo_ros_diff_drive.so">
+            <rosDebugLevel>na</rosDebugLevel>
+            <publishWheelTF>false</publishWheelTF>
+            <robotNamespace>/</robotNamespace>
+            <publishTf>true</publishTf>
+            <publishWheelJointState>false</publishWheelJointState>
+            <alwaysOn>true</alwaysOn>
+            <updateRate>30.0</updateRate>
+            <legacyMode>true</legacyMode>
+            <leftJoint>left_back_wheel2base_link</leftJoint>
+            <rightJoint>right_back_wheel2base_link</rightJoint>
+            <wheelSeparation>${vehicle_width}</wheelSeparation>
+            <wheelDiameter>${wheel_radius * 2}</wheelDiameter>
+            <broadcastTF>1</broadcastTF>
+            <wheelTorque>50</wheelTorque>
+            <wheelAcceleration>1.8</wheelAcceleration>
+            <commandTopic>cmd_vel</commandTopic>
+            <odometryFrame>odom</odometryFrame>
+            <odometryTopic>odom</odometryTopic>
+            <odometrySource>world</odometrySource>
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+            <publishOdomTF>true</publishOdomTF>
+        </plugin>
+    </gazebo>
+ 
+</robot>

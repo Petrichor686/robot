@@ -1,0 +1,103 @@
+<robot name="my_base" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- 封装变量、常量 -->
+    <xacro:property name="PI" value="3.1415927"/>
+    <!-- 宏:黑色设置 -->
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0" />
+    </material>
+    <!-- 底盘属性 -->
+    <xacro:property name="vehicle_mass" value="0.5" /> <!-- 质量  -->
+    <xacro:property name="vehicle_length" value="0.5" /> <!-- 车长  -->
+    <xacro:property name="vehicle_width" value="0.2" /> <!-- 车宽  -->
+    <xacro:property name="vehicle_height" value="0.1" /> <!-- 车高  -->
+    <xacro:property name="base_footprint_radius" value="0.001" /> <!-- base_footprint 半径  -->
+    <xacro:property name="base_link_radius" value="0.1" /> <!-- base_link 半径 -->
+    <xacro:property name="base_link_length" value="0.08" /> <!-- base_link 长 -->
+    <xacro:property name="earth_space" value="0.015" /> <!-- 离地间距 -->
+ 
+    <!-- 底盘 -->
+    <link name="base_link">
+      <visual>
+        <geometry>
+          <box size="${vehicle_length} ${vehicle_width} ${vehicle_height}" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <material name="yellow">
+          <color rgba="0.5 0.3 0.0 0.5" />
+        </material>
+      </visual>
+ 
+      <collision>
+        <geometry>
+            <box size="0.5 0.2 0.1" />
+        </geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      </collision>
+      <xacro:Box_inertial_matrix m="${vehicle_mass}" l="${vehicle_length}" w="${vehicle_width}" h="${vehicle_height}"/>
+    </link>
+    <gazebo reference="base_link">
+      <material>Gazebo/Blue</material>
+    </gazebo>
+ 
+    <!-- 基底，不能带origin设置偏移 -->
+    <link name="base_footprint">
+      <visual>
+        <geometry>
+          <sphere radius="${base_footprint_radius}" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </visual>
+    </link>
+ 
+    <joint name="base_link2base_footprint" type="fixed">
+      <parent link="base_footprint" />
+      <child link="base_link" />
+      <origin xyz="0 0 ${earth_space + vehicle_height / 2 }" />
+    </joint>
+ 
+ 
+    <!-- 轮子属性 -->
+    <xacro:property name="wheel_mass" value="0.05" /><!-- 车轮质量 -->
+    <xacro:property name="wheel_radius" value="0.0325" /><!-- 半径 -->
+    <xacro:property name="wheel_length" value="0.015" /><!-- 宽度 -->
+    <!-- 驱动轮宏实现 -->
+    <xacro:macro name="add_wheels" params="name flagx flagy">
+      <link name="${name}_wheel">
+        <visual>
+          <geometry>
+            <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+          </geometry>
+          <origin xyz="0.0 0.0 0.0" rpy="${PI / 2} 0.0 0.0" />
+          <material name="black" />
+        </visual>
+ 
+        <collision>
+          <geometry>
+              <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+          </geometry>
+          <origin xyz="0.0 0.0 0.0" rpy="${PI / 2} 0.0 0.0" />
+        </collision>
+        <xacro:cylinder_inertial_matrix m="${vehicle_mass}" r="${wheel_radius}" h="${wheel_length}"/>
+      </link>
+      <gazebo reference="${name}_wheel">
+        <material>Gazebo/Black</material>
+        <mu1>10000000</mu1>
+        <mu2>10000000</mu2>
+        <kp>10000000</kp>
+        <kd>1</kd>
+      </gazebo>
+ 
+      <joint name="${name}_wheel2base_link" type="continuous">
+        <parent link="base_link" />
+        <child link="${name}_wheel" />
+        <origin xyz="${flagx * (vehicle_length / 2 - wheel_radius)} ${flagy * (vehicle_width / 2 + wheel_length / 2)} ${-(earth_space + base_link_length / 2 - wheel_radius) }" />
+        <axis xyz="0 1 0" />
+      </joint>
+    </xacro:macro>
+ 
+    <xacro:add_wheels name="left_front" flagx="1" flagy="1"/>
+    <xacro:add_wheels name="left_back" flagx="-1" flagy="1"/>
+    <xacro:add_wheels name="right_front" flagx="1" flagy="-1"/>
+    <xacro:add_wheels name="right_back" flagx="-1" flagy="-1"/>
+ 
+</robot>
